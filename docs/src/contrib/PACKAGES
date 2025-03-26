@@ -1,5 +1,0 @@
-Package: bGMYC
-Version: 1.0.3
-Depends: ape (>= 3.0)
-MD5sum: 3de7f516f6f739e8843ef1f86100415c
-NeedsCompilation: no
