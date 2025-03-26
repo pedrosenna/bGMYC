@@ -1,10 +1,10 @@
 bgmyc.dataprep <-
-function(tr){ 	
+function(tr){
 
-	if (!is.ultrametric(tr)) {
+	if (!ape::is.ultrametric(tr)) {
 		stop("Your input tree is not ultrametric. This method requires that trees be ultrametric.")
 	}
-	if (!is.binary.tree(tr)) {
+	if (!ape::is.binary(tr)) {
 		stop("Your input tree is not fully bifurcating, please resolve with zero branch lengths")
 	}
 	if (0 %in% tr$edge.length[which(tr$edge[,2]<=length(tr$tip.label))]) {
@@ -14,7 +14,7 @@ function(tr){
 
 	local.env <- environment()
 	read.data <- function(z = 1) {
-		bt <- -branching.times(tr)
+		bt <- -ape::branching.times(tr)
 		bt[bt > -1e-06] <- -1e-06
 		names(bt) <- NULL
 		assign("bt", bt, envir = local.env)
@@ -23,22 +23,22 @@ function(tr){
 		assign("numtip", length(tr$tip.label), envir = local.env)
 		assign("numall", length(bt) + length(tr$tip.label), envir = local.env)
 		assign("nthresh", numnod, envir = local.env)
-		
+
 		internod <- sb[2:numnod] - sb[1:numnod - 1]
 		internod[numnod] <- 0 - sb[numnod]
 		assign("internod", internod, envir = local.env)
 
-		assign("nesting", sapply((numtip + 1):numall, nesting.nodes), 
+		assign("nesting", sapply((numtip + 1):numall, nesting.nodes),
 			envir = local.env)
-		assign("nested", sapply((numtip + 1):numall, nest.nodes), 
+		assign("nested", sapply((numtip + 1):numall, nest.nodes),
 			envir = local.env)
 
-		ancs <- cbind(tr$edge[pmatch((1:numnod + numtip), tr$edge[, 
+		ancs <- cbind(tr$edge[pmatch((1:numnod + numtip), tr$edge[,
 			2]), 1], (1:numnod + numtip))
-		bt.ancs <- cbind(bt[ancs[, 1] - numtip], bt[ancs[, 2] - 
+		bt.ancs <- cbind(bt[ancs[, 1] - numtip], bt[ancs[, 2] -
 			numtip])
 		assign("bt.ancs", bt.ancs, envir = local.env)
-		
+
 	}
 
 					  nest.nodes <- function(x, p = 0) {
@@ -84,54 +84,54 @@ function(tr){
 
 
 	create.mat<-function(nthresh=numnod){
-	
+
 		mrca.nodes<-list()
 		nod.types<-list()
 		n<-list()
 		list.i.mat<-list()
 		list.s.nod<-list()
 		nod<-list()
-		
-		for (j in (2:nthresh)) {										
-			threshy <- sb[j]									
-			tmp <- (bt.ancs[, 1] < threshy) & (bt.ancs[, 2] >= threshy)		
-			nod.type <- tmp + (bt >= threshy)								
-			mrca.nodes[[j]] <- which(nod.type == 2)				
-			if (nod.type[1] == 1) 							
+
+		for (j in (2:nthresh)) {
+			threshy <- sb[j]
+			tmp <- (bt.ancs[, 1] < threshy) & (bt.ancs[, 2] >= threshy)
+			nod.type <- tmp + (bt >= threshy)
+			mrca.nodes[[j]] <- which(nod.type == 2)
+			if (nod.type[1] == 1)
 				nod.type[1] <- 2
-			nod.types[[j]]<-nod.type		
-			
-	   		n[[j]]<-length(mrca.nodes[[j]])		
-	   		
-			list.i.mat[[j]] <- matrix(0, ncol = numnod, nrow = (n[[j]] + 1))			
-			list.s.nod[[j]] <- matrix(0, ncol = numnod, nrow = (n[[j]] + 1))			
+			nod.types[[j]]<-nod.type
 
-			nod[[j]]<-nod.types[[j]][order(bt)]	
+	   		n[[j]]<-length(mrca.nodes[[j]])
 
-			for (i in (1:n[[j]])) {										
-				list.s.nod[[j]][i, mrca.nodes[[j]][i]] <- 2										
- 				if (!is.null(nested[[mrca.nodes[[j]][i]]])) {				
-					list.s.nod[[j]][i, nested[[mrca.nodes[[j]][i]]] - numtip] <- 1		
+			list.i.mat[[j]] <- matrix(0, ncol = numnod, nrow = (n[[j]] + 1))
+			list.s.nod[[j]] <- matrix(0, ncol = numnod, nrow = (n[[j]] + 1))
+
+			nod[[j]]<-nod.types[[j]][order(bt)]
+
+			for (i in (1:n[[j]])) {
+				list.s.nod[[j]][i, mrca.nodes[[j]][i]] <- 2
+ 				if (!is.null(nested[[mrca.nodes[[j]][i]]])) {
+					list.s.nod[[j]][i, nested[[mrca.nodes[[j]][i]]] - numtip] <- 1
 				}
-				list.s.nod[[j]][i, ] <- list.s.nod[[j]][i, order(bt)]		
-				list.i.mat[[j]][i, ][list.s.nod[[j]][i, ] == 2] <- 2		
-				list.i.mat[[j]][i, ][list.s.nod[[j]][i, ] == 1] <- 1		
-				list.i.mat[[j]][i, ] <- cumsum(list.i.mat[[j]][i, ])		
+				list.s.nod[[j]][i, ] <- list.s.nod[[j]][i, order(bt)]
+				list.i.mat[[j]][i, ][list.s.nod[[j]][i, ] == 2] <- 2
+				list.i.mat[[j]][i, ][list.s.nod[[j]][i, ] == 1] <- 1
+				list.i.mat[[j]][i, ] <- cumsum(list.i.mat[[j]][i, ])
 			}
-			list.s.nod[[j]][list.s.nod[[j]] == 2] <- 1								
+			list.s.nod[[j]][list.s.nod[[j]] == 2] <- 1
 
-			list.i.mat[[j]] <- list.i.mat[[j]] * (list.i.mat[[j]] - 1)					
+			list.i.mat[[j]] <- list.i.mat[[j]] * (list.i.mat[[j]] - 1)
 			list.s.nod[[j]][n[[j]] + 1, ] <- nod[[j]] == 0
 			list.i.mat[[j]][n[[j]] + 1, nod[[j]] == 0] <- 1
 			list.i.mat[[j]][n[[j]] + 1, nod[[j]] == 2] <- -1
 			list.i.mat[[j]][n[[j]] + 1, ] <- cumsum(list.i.mat[[j]][n[[j]] + 1, ]) + 1
-			
-			
 
-			
+
+
+
 		}
-		
-		assign("mrca.nodes", mrca.nodes, envir = local.env)	
+
+		assign("mrca.nodes", mrca.nodes, envir = local.env)
 		assign("nod.types", nod.types, envir = local.env)
 		assign("n", n, envir=local.env)
 		assign("list.s.nod", list.s.nod, envir = local.env)
@@ -139,7 +139,7 @@ function(tr){
 	}
 	read.data()
 	create.mat()
-	
+
 		prepdata<-list()
 		prepdata[["mrca.nodes"]]<-mrca.nodes
 		prepdata[["nod.types"]]<-nod.types
@@ -149,6 +149,6 @@ function(tr){
 		prepdata[["internod"]]<-internod
 		prepdata[["tree"]]<-tr
 
-	
+
 	return(prepdata)
 }

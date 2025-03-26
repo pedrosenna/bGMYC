@@ -58,7 +58,7 @@ if(class(res)=="singlebgmyc"){
 
 	for(j in 1:length(res$par[,3])){
 		assignlists<-spec.list(res, res$par[j,3])
-		levs<-levels(assignlists[,1])
+		levs<-unique(assignlists[,1])
 		for(i in 1:length(levs)){
 		probmat[as.character(assignlists[which(assignlists[,1]==levs[i]),2]),as.character(assignlists[which(assignlists[,1]==levs[i]),2])]<-probmat[as.character(assignlists[which(assignlists[,1]==levs[i]),2]),as.character(assignlists[which(assignlists[,1]==levs[i]),2])]+(1/length(res$par[,3]))
 			}
@@ -76,7 +76,7 @@ if(class(res)=="multibgmyc"){
 	for(q in 1:ntrees){
 		for(j in 1:length(res[[q]]$par[,3])){
 			assignlists<-spec.list(res[[q]], res[[q]]$par[j,3])
-			levs<-levels(assignlists[,1])
+			levs<-unique(assignlists[,1])
 			for(i in 1:length(levs)){
 				probmat[as.character(assignlists[which(assignlists[,1]==levs[i]),2]),as.character(assignlists[which(assignlists[,1]==levs[i]),2])]<-probmat[as.character(assignlists[which(assignlists[,1]==levs[i]),2]),as.character(assignlists[which(assignlists[,1]==levs[i]),2])]+1
 
